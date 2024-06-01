@@ -1,9 +1,9 @@
 import csv
 import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
 
 # Load the dataset using csv module
 file_path = 'od_stats_2020.csv'
@@ -35,48 +35,35 @@ def classify_medod(value):
 
 y_classified = [classify_medod(value) for value in y]
 
-# Convert data into latitude and longitude for plotting
-latitude_index = header.index('latitude')
-longitude_index = header.index('longitude')
-
-latitudes = [float(row[latitude_index].replace(',', '.')) for row in data]
-longitudes = [float(row[longitude_index].replace(',', '.')) for row in data]
-
-# Define colors for each class
-colors = ['green', 'blue', 'orange', 'red', 'black']
-color_map = [colors[value - 1] for value in y_classified]
-
-# Create a scatter plot
-plt.figure(figsize=(10, 6))
-scatter = plt.scatter(longitudes, latitudes, c=color_map, alpha=0.6)
-
-# Create a legend
-legend_labels = ['Classe 1: ≥ 6.0 mg/L', 'Classe 2: ≥ 5.0 mg/L', 'Classe 3: ≥ 4.0 mg/L', 'Classe 4: ≥ 2.0 mg/L', 'Classe 5: < 2.0 mg/L']
-handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors[i], markersize=10) for i in range(len(legend_labels))]
-plt.legend(handles, legend_labels, loc='upper right')
-
-# Set plot title and labels
-plt.title('Scatter Plot of Points Based on medod Classification')
-plt.xlabel('Longitude')
-plt.ylabel('Latitude')
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y_classified, test_size=0.2, random_state=42)
 
 # Standardize the features
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-# Initialize the KNN model
-knn = KNeighborsRegressor(n_neighbors=5)
+# Initialize and train the KNN classifier
+knn_classifier = KNeighborsClassifier(n_neighbors=20)
+knn_classifier.fit(X_train_scaled, y_train)
 
-# Perform k-fold cross-validation
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
-cv_scores = cross_val_score(knn, X_scaled, y, cv=kf, scoring='neg_mean_squared_error')
+# Predict on the test set
+y_pred = knn_classifier.predict(X_test_scaled)
 
-# Calculate and print the mean RMSE from cross-validation
-rmse_scores = (-cv_scores) ** 0.5
-mean_rmse = rmse_scores.mean()
+# Evaluate the model
+conf_matrix = confusion_matrix(y_test, y_pred)
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
+f1 = f1_score(y_test, y_pred, average='weighted')
 
-print(f"Mean RMSE from 5-Fold Cross-Validation: {mean_rmse:.2f}")
+print(f"Accuracy: {accuracy:.2f}")
+print(f"Precision: {precision:.2f}")
+print(f"Recall: {recall:.2f}")
+print(f"F1 Score: {f1:.2f}")
 
-# Show the plot
+# Plot the confusion matrix
+disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Classe 1', 'Classe 2', 'Classe 3', 'Classe 4', 'Classe 5'])
+disp.plot(cmap=plt.cm.Blues)
+plt.title('Confusion Matrix')
 plt.show()
-
