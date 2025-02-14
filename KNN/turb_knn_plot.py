@@ -23,12 +23,14 @@ y = [float(row[target_index].replace(',', '.')) for row in data]
 
 # Classify target variable based on the given ranges for turbidity concentration
 def classify_turbidity(value):
-    if value <= 40:
-        return 1  # Classe 1 ou 2 (Low Turb)
+    if value <= 5:
+        return 1  # Distribuíveis
+    elif value <= 40:
+        return 2  # Classe 1 ou 2 (Low Turb)
     elif value <= 100:
-        return 2  # Classe 3 ou 4 (Moderate Turb)
+        return 3  # Classe 3 ou 4 (Moderate Turb)
     else:
-        return 3  # High Turb
+        return 4  # High Turb
 
 y_classified = [classify_turbidity(value) for value in y]
 
@@ -79,12 +81,12 @@ for i in range(1, 26):
     print(f"F1 Score: {f1:.2f}")
 
 # Optionally plot the confusion matrix for the best k value
-best_k = 7  # You can choose the best k value based on the metrics
+best_k = 9  # You can choose the best k value based on the metrics
 knn_classifier = KNeighborsClassifier(n_neighbors=best_k)
 knn_classifier.fit(X_train_scaled, y_train)
 y_pred = knn_classifier.predict(X_test_scaled)
 conf_matrix = confusion_matrix(y_test, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Classe 1 ou 2', 'Classe 3 ou 4', 'High turbidity'])
+disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Distribuíveis','Classe 1 ou 2', 'Classe 3 ou 4', 'Turbidez Alta'])
 disp.plot(cmap=plt.cm.Blues)
-plt.title('Confusion Matrix')
+plt.title('Matriz de Confusão para \'Turbidez\'')
 plt.show()

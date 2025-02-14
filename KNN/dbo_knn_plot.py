@@ -25,10 +25,12 @@ y = [float(row[target_index].replace(',', '.')) for row in data]
 def classify_meddbo(value):
     if value < 2.0:
         return 1  # Águas Naturais Limpas
-    elif value <= 5.0:
+    elif value >= 5.0:
         return 2  # Moderate Pollution
-    else:
+    elif value >= 10.0:
         return 3  # High Pollution
+    else:
+        return 4  # Undefined given the parameters   
 
 y_classified = [classify_meddbo(value) for value in y]
 
@@ -80,7 +82,7 @@ knn_classifier = KNeighborsClassifier(n_neighbors=best_k)
 knn_classifier.fit(X_train_scaled, y_train)
 y_pred = knn_classifier.predict(X_test_scaled)
 conf_matrix = confusion_matrix(y_test, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Limpas', 'Moderate Pollution', 'High Pollution'])
+disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Águas Limpas', 'Moderadamente Poluídas', 'Altamente Poluídas'])
 disp.plot(cmap=plt.cm.Blues)
-plt.title('Confusion Matrix')
+plt.title('Matriz de Confusão para \'Demanda Bioquímica de Oxigênio\'')
 plt.show()

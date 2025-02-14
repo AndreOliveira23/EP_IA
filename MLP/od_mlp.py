@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
 from tqdm import tqdm
 
@@ -47,25 +47,26 @@ X_test_scaled = scaler.transform(X_test)
 
 # Define the parameter grid for GridSearchCV
 param_grid = {
-    'n_estimators': [50, 100],
-    'max_depth': [None, 10],
-    'min_samples_split': [2, 5],
-    'min_samples_leaf': [1, 2]
+    'hidden_layer_sizes': [(50,), (100,), (100, 50)],
+    'activation': ['relu', 'tanh'],
+    'solver': ['adam', 'sgd'],
+    'alpha': [0.0001, 0.001],
+    'learning_rate': ['constant', 'adaptive'],
 }
 
-# Initialize the Random Forest classifier
-rf_classifier = RandomForestClassifier(random_state=42)
+# Initialize the MLP classifier
+mlp_classifier = MLPClassifier(random_state=42, max_iter=1000)
 
 # Perform GridSearchCV to find the best hyperparameters
-grid_search = GridSearchCV(estimator=rf_classifier, param_grid=param_grid, cv=5, n_jobs=-1, scoring='accuracy', verbose=2)
+grid_search = GridSearchCV(estimator=mlp_classifier, param_grid=param_grid, cv=5, n_jobs=-1, scoring='accuracy', verbose=2)
 grid_search.fit(X_train_scaled, y_train)
 
 # Get the best model
-best_rf_classifier = grid_search.best_estimator_
+best_mlp_classifier = grid_search.best_estimator_
 print(f"Best parameters found: {grid_search.best_params_}")
 
 # Predict on the test set using the best model
-y_pred = best_rf_classifier.predict(X_test_scaled)
+y_pred = best_mlp_classifier.predict(X_test_scaled)
 
 # Evaluate the model
 conf_matrix = confusion_matrix(y_test, y_pred)
@@ -94,6 +95,7 @@ print(f"Taxa de erro: {error_rate:.2f}")
 print(f"Precisão: {precision:.2f}")
 print(f"Especificidade: {np.mean(specificity):.2f}")
 print(f"Sensibilidade (Recall): {recall:.2f}")
+print(f"FPR: {np.mean(FPR):.2f}")
 print(f"F1 Score: {f1:.2f}")
 
 # Plot the confusion matrix for the best model
